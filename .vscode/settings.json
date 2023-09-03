@@ -1,0 +1,12 @@
+{
+    "files.associations": {
+        "render.h": "c",
+        "rmath.h": "c",
+        "define_types.h": "c",
+        "canvas.h": "c",
+        "iterator": "c",
+        "initializer_list": "c",
+        "type_traits": "c",
+        "xutility": "c"
+    }
+}
