@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include "define_types.h"
 #include "canvas.h"
+#include "logger.h"
 
 #define assert(c)           \
     do                      \
@@ -96,8 +97,7 @@ static void draw_rect(i32 x, i32 y, i32 width, i32 height, u32 color)
 i32 WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd, i32 cmd_show)
 {
 
-    // Create a window.
-
+    DEBUG("create a window.");
     WNDCLASSW window_class = {
         .lpszClassName = L"ray_tracer_window_class",
         .lpfnWndProc = window_proc,
