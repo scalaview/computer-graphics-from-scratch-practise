@@ -30,6 +30,32 @@ static Bool intersect_ray_sphere(vec3 camera_position, vec3 viewport, sphere *sp
     return True;
 }
 
+static f32 compute_lighting(canvas ctx, vec3 point, vec3 normal)
+{
+    f32 intensity = 0.0f;
+    for (i32 i = 0; i < ctx.light_size; i++)
+    {
+        light light = (*ctx.lights)[i];
+        if (light.type == LIGHT_AMBIENT)
+        {
+            intensity += light.intensity;
+        }
+        else
+        {
+            vec3 l;
+            if (light.type == LIGHT_POINT)
+                l = vec3_sub(light.position, point);
+            else
+                l = light.direction;
+            // calculate cost(a)
+            f32 n_dot_l = vec3_dot(normal, l);
+            if (n_dot_l > 0)
+                intensity += light.intensity * n_dot_l / (vec3_length(normal) * vec3_length(l));
+        }
+    }
+    return intensity;
+}
+
 static Bool trace_ray(canvas ctx, vec3 camera_position, vec3 viewport, i32 min, i32 max, color *out_color)
 {
     f32 closest_t = FLT_MAX;
@@ -56,7 +82,14 @@ static Bool trace_ray(canvas ctx, vec3 camera_position, vec3 viewport, i32 min, 
     }
     if (closest_sphere)
     {
-        *out_color = closest_sphere->color;
+        vec3 intersection_point = vec3_add(camera_position, (vec3){closest_t * viewport.x, closest_t * viewport.y, closest_t * viewport.z});
+        vec3 law = vec3_sub(intersection_point, closest_sphere->center);
+        vec3 normal = vec3_normalized(law);
+        f32 lighting_cost = compute_lighting(ctx, intersection_point, normal);
+        *out_color = (color){.alpha = closest_sphere->color.alpha,
+                             .r = closest_sphere->color.r * lighting_cost,
+                             .g = closest_sphere->color.g * lighting_cost,
+                             .b = closest_sphere->color.b * lighting_cost};
         return True;
     }
     return False;

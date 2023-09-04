@@ -17,7 +17,7 @@
 
 void draw_pixel(i32 x, i32 y, u32 color);
 
-sphere spheres[3] = {
+sphere spheres[4] = {
     {{0, -1, 3},
      1,
      {.alpha = 255, .r = 255, .g = 0, .b = 0}},
@@ -26,14 +26,29 @@ sphere spheres[3] = {
      {.alpha = 255, .r = 0, .g = 0, .b = 255}},
     {{-2, 0, 4},
      1,
-     {.alpha = 255, .r = 0, .g = 255, .b = 0}}};
+     {.alpha = 255, .r = 0, .g = 255, .b = 0}},
+    {{0, -5001, 0},
+     5000,
+     {.alpha = 255, .r = 255, .g = 255, .b = 0}}};
+
+light lights[3] = {
+    {.type = LIGHT_AMBIENT,
+     .intensity = 0.2f},
+    {.type = LIGHT_POINT,
+     .intensity = 0.6f,
+     .position = (vec3){2, 1, 0}},
+    {.type = LIGHT_DIRECTIONAL,
+     .intensity = 0.2f,
+     .direction = (vec3){1, 4, 4}}};
 
 canvas canvas_ctx = {
     .put_pixel = draw_pixel,
     .width = 0,
     .height = 0,
-    .sphere_size = 3,
-    .spheres = &spheres};
+    .sphere_size = 4,
+    .spheres = &spheres,
+    .lights = &lights,
+    .light_size = 3};
 void *memory;
 void draw_pixel(i32 x, i32 y, u32 color)
 {

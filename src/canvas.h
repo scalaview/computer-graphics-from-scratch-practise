@@ -11,6 +11,23 @@ typedef struct sphere
     color color;
 } sphere;
 
+typedef enum light_type
+{
+    LIGHT_AMBIENT = 0,
+    LIGHT_POINT = 1,
+    LIGHT_DIRECTIONAL = 2
+} light_type;
+typedef struct light
+{
+    light_type type;
+    f32 intensity;
+    union
+    {
+        vec3 position, direction;
+    };
+
+} light;
+
 typedef struct canvas
 {
     void (*put_pixel)(i32 x, i32 y, u32 color);
@@ -18,6 +35,9 @@ typedef struct canvas
     i32 height;
     sphere (*spheres)[];
     i32 sphere_size;
+
+    light (*lights)[];
+    i32 light_size;
 } canvas;
 
 void render_frame(canvas canvas);
