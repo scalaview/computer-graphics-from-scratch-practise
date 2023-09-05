@@ -9,6 +9,8 @@
         "type_traits": "c",
         "xutility": "c",
         "windows.h": "c",
-        "logger.h": "c"
+        "logger.h": "c",
+        "stdarg.h": "c",
+        "stdlib.h": "c"
     }
 }

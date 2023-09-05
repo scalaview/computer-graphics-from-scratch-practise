@@ -1,4 +1,5 @@
 #include "canvas.h"
+#include "logger.h"
 
 static const vec3 camera_position = {0, 0, 0};
 static const vec3 viewport_vector = {1, 1, 1};
@@ -13,9 +14,7 @@ static RINLINE vec3 canvas_to_viewport(canvas ctx, i32 x, i32 y)
 
 static Bool intersect_ray_sphere(vec3 camera_position, vec3 viewport, sphere *sphere, f32 *t1, f32 *t2)
 {
-    vec3 co = (vec3){camera_position.x - sphere->center.x,
-                     camera_position.y - sphere->center.y,
-                     camera_position.z - sphere->center.z};
+    vec3 co = vec3_sub(camera_position, sphere->center);
     f32 a = vec3_dot(viewport, viewport);
     f32 b = 2 * vec3_dot(co, viewport);
     f32 c = vec3_dot(co, co) - sphere->radius * sphere->radius;
@@ -30,7 +29,7 @@ static Bool intersect_ray_sphere(vec3 camera_position, vec3 viewport, sphere *sp
     return True;
 }
 
-static f32 compute_lighting(canvas ctx, vec3 point, vec3 normal)
+static f32 compute_lighting(canvas ctx, vec3 point, vec3 normal, vec3 view, f32 specular)
 {
     f32 intensity = 0.0f;
     for (i32 i = 0; i < ctx.light_size; i++)
@@ -42,15 +41,25 @@ static f32 compute_lighting(canvas ctx, vec3 point, vec3 normal)
         }
         else
         {
-            vec3 l;
+            vec3 l_vec;
             if (light.type == LIGHT_POINT)
-                l = vec3_sub(light.position, point);
+                l_vec = vec3_sub(light.position, point);
             else
-                l = light.direction;
-            // calculate cost(a)
-            f32 n_dot_l = vec3_dot(normal, l);
+                l_vec = light.direction;
+            // calculate cos(a)
+            f32 n_dot_l = vec3_dot(normal, l_vec);
             if (n_dot_l > 0)
-                intensity += light.intensity * n_dot_l / (vec3_length(normal) * vec3_length(l));
+                intensity += light.intensity * n_dot_l / (vec3_length(normal) * vec3_length(l_vec));
+            if (specular != -1)
+            {
+                // specular reflection
+                vec3 reflect_vec = vec3_sub(vec3_mul_scalar(normal, 2 * vec3_dot(normal, l_vec)), l_vec);
+                f32 r_dot_v = vec3_dot(reflect_vec, view);
+                if (r_dot_v > 0)
+                {
+                    intensity += light.intensity * pow(r_dot_v / ((vec3_length(reflect_vec) * vec3_length(view))), specular);
+                }
+            }
         }
     }
     return intensity;
@@ -82,14 +91,11 @@ static Bool trace_ray(canvas ctx, vec3 camera_position, vec3 viewport, i32 min, 
     }
     if (closest_sphere)
     {
-        vec3 intersection_point = vec3_add(camera_position, (vec3){closest_t * viewport.x, closest_t * viewport.y, closest_t * viewport.z});
+        vec3 intersection_point = vec3_add(camera_position, vec3_mul_scalar(viewport, closest_t));
         vec3 law = vec3_sub(intersection_point, closest_sphere->center);
         vec3 normal = vec3_normalized(law);
-        f32 lighting_cost = compute_lighting(ctx, intersection_point, normal);
-        *out_color = (color){.alpha = closest_sphere->color.alpha,
-                             .r = closest_sphere->color.r * lighting_cost,
-                             .g = closest_sphere->color.g * lighting_cost,
-                             .b = closest_sphere->color.b * lighting_cost};
+        f32 lighting_cost = compute_lighting(ctx, intersection_point, normal, vec3_mul_scalar(viewport, -1), closest_sphere->specular);
+        *out_color = color_mul(closest_sphere->color, (vec3){lighting_cost, lighting_cost, lighting_cost});
         return True;
     }
     return False;
@@ -101,12 +107,6 @@ void render_frame(canvas ctx)
     {
         for (i32 y = -ctx.height / 2; y < ctx.height / 2; y++)
         {
-            if (x == 0 && y == 0)
-            {
-                int i = 0;
-                if (i)
-                    ;
-            }
             vec3 viewport = canvas_to_viewport(ctx, x, y);
             color color = backgroud_color;
             trace_ray(ctx, camera_position, viewport, 1, INF, &color);

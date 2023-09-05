@@ -38,6 +38,14 @@ RINLINE vec3 vec3_add(vec3 vector_0, vec3 vector_1)
         vector_0.z + vector_1.z};
 }
 
+RINLINE vec3 vec3_mul_scalar(vec3 vector_0, f32 scalar)
+{
+    return (vec3){
+        vector_0.x * scalar,
+        vector_0.y * scalar,
+        vector_0.z * scalar};
+}
+
 RINLINE void vec3_normalize(vec3 *vector)
 {
     const f32 length = vec3_length(*vector);
@@ -51,3 +59,6 @@ RINLINE vec3 vec3_normalized(vec3 vector)
     vec3_normalize(&vector);
     return vector;
 }
+
+#define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
+#define MAX(a, b) (((a) > (b)) ? (a) : (b))
