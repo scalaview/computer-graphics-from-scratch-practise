@@ -29,12 +29,47 @@ static Bool intersect_ray_sphere(vec3 camera_position, vec3 viewport, sphere *sp
     return True;
 }
 
+static Bool closest_intersection(canvas ctx, vec3 camera_position, vec3 viewport, f32 t_min, f32 t_max, f32 *out_closest_t, sphere **out_closest_sphere)
+{
+    f32 closest_t = FLT_MAX;
+    sphere *closest_sphere = 0;
+
+    for (i32 i = 0; i < ctx.sphere_size; i++)
+    {
+        f32 t1, t2 = 0;
+        sphere *sphere = &(*ctx.spheres)[i];
+        Bool res = intersect_ray_sphere(camera_position, viewport, sphere, &t1, &t2);
+        if (!res)
+            continue;
+        if (t1 > t_min && t1 < t_max && t1 < closest_t)
+        {
+            closest_t = t1;
+            closest_sphere = sphere;
+        }
+
+        if (t2 > t_min && t2 < t_max && t2 < closest_t)
+        {
+            closest_t = t2;
+            closest_sphere = sphere;
+        }
+    }
+    if (closest_sphere)
+    {
+        *out_closest_t = closest_t;
+        *out_closest_sphere = closest_sphere;
+        return True;
+    }
+    return False;
+}
+
 static f32 compute_lighting(canvas ctx, vec3 point, vec3 normal, vec3 view, f32 specular)
 {
     f32 intensity = 0.0f;
+    f32 t_min = 0.001f;
     for (i32 i = 0; i < ctx.light_size; i++)
     {
         light light = (*ctx.lights)[i];
+        f32 t_max = 0.0f;
         if (light.type == LIGHT_AMBIENT)
         {
             intensity += light.intensity;
@@ -43,9 +78,21 @@ static f32 compute_lighting(canvas ctx, vec3 point, vec3 normal, vec3 view, f32 
         {
             vec3 l_vec;
             if (light.type == LIGHT_POINT)
+            {
                 l_vec = vec3_sub(light.position, point);
+                t_max = 1.0;
+            }
             else
+            {
                 l_vec = light.direction;
+                t_max = FLT_MAX;
+            }
+            // calculate shadow
+            f32 closest_t = FLT_MAX;
+            sphere *closest_sphere = 0;
+            if (closest_intersection(ctx, point, l_vec, t_min, t_max, &closest_t, &closest_sphere))
+                continue;
+
             // calculate cos(a)
             f32 n_dot_l = vec3_dot(normal, l_vec);
             if (n_dot_l > 0)
@@ -65,31 +112,12 @@ static f32 compute_lighting(canvas ctx, vec3 point, vec3 normal, vec3 view, f32 
     return intensity;
 }
 
-static Bool trace_ray(canvas ctx, vec3 camera_position, vec3 viewport, i32 min, i32 max, color *out_color)
+static Bool trace_ray(canvas ctx, vec3 camera_position, vec3 viewport, f32 t_min, f32 t_max, color *out_color)
 {
     f32 closest_t = FLT_MAX;
     sphere *closest_sphere = 0;
 
-    for (i32 i = 0; i < ctx.sphere_size; i++)
-    {
-        f32 t1, t2 = 0;
-        sphere *sphere = &(*ctx.spheres)[i];
-        Bool res = intersect_ray_sphere(camera_position, viewport, sphere, &t1, &t2);
-        if (!res)
-            continue;
-        if (t1 > min && t1 < max && t1 < closest_t)
-        {
-            closest_t = t1;
-            closest_sphere = sphere;
-        }
-
-        if (t2 > min && t2 < max && t2 < closest_t)
-        {
-            closest_t = t2;
-            closest_sphere = sphere;
-        }
-    }
-    if (closest_sphere)
+    if (closest_intersection(ctx, camera_position, viewport, t_min, t_max, &closest_t, &closest_sphere))
     {
         vec3 intersection_point = vec3_add(camera_position, vec3_mul_scalar(viewport, closest_t));
         vec3 law = vec3_sub(intersection_point, closest_sphere->center);
@@ -109,7 +137,7 @@ void render_frame(canvas ctx)
         {
             vec3 viewport = canvas_to_viewport(ctx, x, y);
             color color = backgroud_color;
-            trace_ray(ctx, camera_position, viewport, 1, INF, &color);
+            trace_ray(ctx, camera_position, viewport, 1.0f, FLT_MAX, &color);
             ctx.put_pixel(CENTER_TO_ZERO_X(ctx.width, x), CENTER_TO_ZERO_Y(ctx.height, y), color.argb);
         }
     }
