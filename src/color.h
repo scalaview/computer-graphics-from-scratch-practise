@@ -15,11 +15,29 @@ typedef union color
     } ATTR_PACKED;
 } color;
 
-RINLINE color color_mul(color col, vec3 scalar)
+RINLINE color color_mul(color col, color scalar)
 {
 
-    return (color){.alpha = col.alpha,
+    return (color){.alpha = MIN(col.alpha * scalar.alpha, 255),
                    .r = MIN(col.r * scalar.r, 255),
                    .g = MIN(col.g * scalar.g, 255),
                    .b = MIN(col.b * scalar.b, 255)};
+}
+
+RINLINE color color_mul_scalar(color col, f64 scalar)
+{
+
+    return (color){.alpha = MIN(col.alpha * scalar, 255),
+                   .r = MIN(col.r * scalar, 255),
+                   .g = MIN(col.g * scalar, 255),
+                   .b = MIN(col.b * scalar, 255)};
+}
+
+RINLINE color color_add(color col, color scalar)
+{
+
+    return (color){.alpha = MIN(col.alpha + scalar.alpha, 255),
+                   .r = MIN(col.r + scalar.r, 255),
+                   .g = MIN(col.g + scalar.g, 255),
+                   .b = MIN(col.b + scalar.b, 255)};
 }

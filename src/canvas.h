@@ -10,6 +10,7 @@ typedef struct sphere
     i32 radius;
     color color;
     f32 specular;
+    f32 reflective;
 } sphere;
 
 typedef enum light_type
