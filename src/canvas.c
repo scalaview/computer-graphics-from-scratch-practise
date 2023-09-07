@@ -72,6 +72,28 @@ static Bool closest_intersection(canvas ctx, vec3 camera_position, vec3 viewport
     return False;
 }
 
+static Bool detect_intersection(canvas ctx, vec3 camera_position, vec3 viewport, f64 t_min, f64 t_max)
+{
+    for (i32 i = 0; i < ctx.sphere_size; i++)
+    {
+        f64 t1, t2 = 0;
+        sphere *sphere = &(*ctx.spheres)[i];
+        Bool res = intersect_ray_sphere(camera_position, viewport, sphere, &t1, &t2);
+        if (!res)
+            continue;
+        if (t1 > t_min && t1 < t_max && t1 < FLT_MAX)
+        {
+            return True;
+        }
+
+        if (t2 > t_min && t2 < t_max && t2 < FLT_MAX)
+        {
+            return True;
+        }
+    }
+    return False;
+}
+
 static f64 compute_lighting(canvas ctx, vec3 point, vec3 normal, vec3 view, f64 specular)
 {
     f32 intensity = 0.0f;
@@ -98,9 +120,7 @@ static f64 compute_lighting(canvas ctx, vec3 point, vec3 normal, vec3 view, f64 
                 t_max = FLT_MAX;
             }
             // calculate shadow
-            f64 closest_t = FLT_MAX;
-            sphere *closest_sphere = 0;
-            if (closest_intersection(ctx, point, l_vec, t_min, t_max, &closest_t, &closest_sphere))
+            if (detect_intersection(ctx, point, l_vec, t_min, t_max))
                 continue;
 
             // calculate cos(a)
@@ -157,8 +177,7 @@ void render_frame(canvas ctx)
     {
         for (i32 y = -ctx.height / 2; y < ctx.height / 2; y++)
         {
-            vec3 v1 = canvas_to_viewport(ctx, x, y);
-            vec3 viewport = vec3_mul_mv(camera_rotation, v1);
+            vec3 viewport = vec3_mul_mv(camera_rotation, canvas_to_viewport(ctx, x, y));
             color color = backgroud_color;
             trace_ray(ctx, camera_position, viewport, 1.0f, FLT_MAX, recursion_depth, &color);
             ctx.put_pixel(CENTER_TO_ZERO_X(ctx.width, x), CENTER_TO_ZERO_Y(ctx.height, y), color.argb);
