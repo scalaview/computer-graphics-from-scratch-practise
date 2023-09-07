@@ -60,5 +60,14 @@ RINLINE vec3 vec3_normalized(vec3 vector)
     return vector;
 }
 
+// Multiplies a matrix and a vector.
+RINLINE vec3 vec3_mul_mv(vec3 vrctor_mat[], vec3 vector_0)
+{
+    return (vec3){
+        vec3_dot(vector_0, (vec3){vrctor_mat[0].x, vrctor_mat[0].y, vrctor_mat[0].z}),
+        vec3_dot(vector_0, (vec3){vrctor_mat[1].x, vrctor_mat[1].y, vrctor_mat[1].z}),
+        vec3_dot(vector_0, (vec3){vrctor_mat[2].x, vrctor_mat[2].y, vrctor_mat[2].z})};
+}
+
 #define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))

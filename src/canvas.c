@@ -1,7 +1,12 @@
 #include "canvas.h"
 #include "logger.h"
 
-static const vec3 camera_position = {0, 0, 0};
+static const vec3 camera_position = {3, 0, 1};
+static vec3 camera_rotation[3] = {
+    (vec3){0.7071f, 0, -0.7071f},
+    (vec3){0, 1, 0},
+    (vec3){0.7071f, 0, 0.7071f},
+};
 static const vec3 viewport_vector = {1, 1, 1};
 const color backgroud_color = {.argb = 0x0};
 static RINLINE vec3 canvas_to_viewport(canvas ctx, i32 x, i32 y)
@@ -152,7 +157,8 @@ void render_frame(canvas ctx)
     {
         for (i32 y = -ctx.height / 2; y < ctx.height / 2; y++)
         {
-            vec3 viewport = canvas_to_viewport(ctx, x, y);
+            vec3 v1 = canvas_to_viewport(ctx, x, y);
+            vec3 viewport = vec3_mul_mv(camera_rotation, v1);
             color color = backgroud_color;
             trace_ray(ctx, camera_position, viewport, 1.0f, FLT_MAX, recursion_depth, &color);
             ctx.put_pixel(CENTER_TO_ZERO_X(ctx.width, x), CENTER_TO_ZERO_Y(ctx.height, y), color.argb);
