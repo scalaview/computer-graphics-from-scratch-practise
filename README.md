@@ -12,8 +12,10 @@ This the C implements practices for the book [Computer graphics from scratch](ht
 - [Clang](https://github.com/llvm/llvm-project)
 - [Make](https://gnuwin32.sourceforge.net/packages/make.htm)
 
-### Build.
+### Build .
+
+#### Ray Tracer.
 
 ```
-.\build.bat
+cd raytracer && .\build.bat
 ```

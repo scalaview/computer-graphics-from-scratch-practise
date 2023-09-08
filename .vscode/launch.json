@@ -5,10 +5,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "(Windows) Launch",
+            "name": "Ray Tracer Launch",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/bin/render.exe",
+            "program": "${workspaceFolder}/bin/raytracer.exe",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/bin/",

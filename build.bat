@@ -10,8 +10,8 @@ ECHO "Building..."
 @REM IF %ERRORLEVEL% NEQ 0 (echo Error:%ERRORLEVEL% && exit)
 
 REM src
-make clean
-make all
+make -f "Makefile.raytracer" clean
+make -f "Makefile.raytracer" all
 IF %ERRORLEVEL% NEQ 0 (echo Error:%ERRORLEVEL% && exit)
 
 ECHO "All assemblies built successfully."

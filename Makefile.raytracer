@@ -3,7 +3,7 @@ DIR := $(subst /,\,${CURDIR})
 BUILD_DIR := bin
 OBJ_DIR := obj
 
-ASSEMBLY := src
+ASSEMBLY := raytracer
 APP := render
 EXTENSION := .exe
 COMPILER_FLAGS := -std=c99 -g -MD -Werror=vla -Wno-missing-braces -fdeclspec
@@ -22,13 +22,13 @@ all: scaffold compile link
 .PHONY: scaffold
 scaffold: # create build directory
 	@echo Scaffolding folder structure...
-	-@setlocal enableextensions enabledelayedexpansion && mkdir $(addprefix $(OBJ_DIR), $(DIRECTORIES)) && mkdir $(addprefix $(BUILD_DIR), $(DIRECTORIES)) 2>NUL || cd .
+	-@setlocal enableextensions enabledelayedexpansion && mkdir $(addprefix $(OBJ_DIR), $(DIRECTORIES)) && mkdir $(BUILD_DIR) 2>NUL || cd .
 	@echo Done.
 
 .PHONY: link
 link: scaffold $(OBJ_FILES) # link
-	@echo Linking $(APP)...
-	@clang $(OBJ_FILES) -o $(BUILD_DIR)/$(APP)$(EXTENSION) $(LINKER_FLAGS)
+	@echo Linking $(ASSEMBLY)...
+	@clang $(OBJ_FILES) -o $(BUILD_DIR)/$(ASSEMBLY)$(EXTENSION) $(LINKER_FLAGS)
 
 .PHONY: compile
 compile: #compile .c files
@@ -36,7 +36,7 @@ compile: #compile .c files
 
 .PHONY: clean
 clean: # clean build directory
-	if exist $(BUILD_DIR)\$(APP)$(EXTENSION) del $(BUILD_DIR)\$(APP)$(EXTENSION)
+	if exist $(BUILD_DIR)\$(ASSEMBLY)$(EXTENSION) del $(BUILD_DIR)\$(ASSEMBLY)$(EXTENSION)
 	rmdir /s /q $(BUILD_DIR)
 	rmdir /s /q $(OBJ_DIR)
 
