@@ -14,6 +14,17 @@
             "cwd": "${workspaceFolder}/bin/",
             "environment": [],
             "console": "integratedTerminal",
+        },
+        {
+            "name": "Raster Launch",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bin/raster.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/bin/",
+            "environment": [],
+            "console": "integratedTerminal",
         }
     ]
 }

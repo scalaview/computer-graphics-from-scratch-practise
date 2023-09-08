@@ -11,6 +11,7 @@
         "windows.h": "c",
         "logger.h": "c",
         "stdarg.h": "c",
-        "stdlib.h": "c"
+        "stdlib.h": "c",
+        "rmath_types.h": "c"
     }
 }
