@@ -3,6 +3,7 @@
 #include "define_types.h"
 #include "canvas.h"
 #include "logger.h"
+#include <stdlib.h>
 
 #define assert(c)           \
     do                      \
@@ -94,6 +95,7 @@ i32 WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd, i32 c
     GetClientRect(window, &rect);
     canvas_ctx.width = rect.right - rect.left;
     canvas_ctx.height = rect.bottom - rect.top;
+    canvas_ctx.point_result = malloc(sizeof(i32) * max(canvas_ctx.width, canvas_ctx.height));
 
     memory = VirtualAlloc(0, canvas_ctx.width * canvas_ctx.height * 4, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 
@@ -122,11 +124,12 @@ i32 WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd, i32 c
 
         clear_screen(backgroud_color.argb);
 
-        // render_frame(canvas_ctx);
+        render_frame(canvas_ctx);
         // Display image.
 
         StretchDIBits(DeviceContext, 0, 0, canvas_ctx.width, canvas_ctx.height, 0, 0, canvas_ctx.width, canvas_ctx.height, memory, &bitmap_info, DIB_RGB_COLORS, SRCCOPY);
     }
 
+    free(canvas_ctx.point_result);
     return 0;
 }
