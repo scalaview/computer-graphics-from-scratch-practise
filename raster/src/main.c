@@ -76,7 +76,7 @@ i32 WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd, i32 c
 
     DEBUG("create a window.");
     WNDCLASSW window_class = {
-        .lpszClassName = L"ray_tracer_window_class",
+        .lpszClassName = L"raster_window_class",
         .lpfnWndProc = window_proc,
         .hInstance = instance,
         .hCursor = LoadCursor(NULL, IDC_CROSS),
@@ -84,7 +84,7 @@ i32 WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd, i32 c
     ATOM atom = RegisterClassW(&window_class);
     assert(atom && "Failed to register a window");
 
-    HWND window = CreateWindowW(window_class.lpszClassName, L"Ray Tracer", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 600, 600, NULL, NULL, instance, NULL);
+    HWND window = CreateWindowW(window_class.lpszClassName, L"Raster", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 600, 600, NULL, NULL, instance, NULL);
     assert(window && "Failed to create a window");
 
     ShowWindow(window, cmd_show);
