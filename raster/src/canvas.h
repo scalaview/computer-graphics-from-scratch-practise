@@ -9,7 +9,10 @@ typedef struct canvas
     void (*put_pixel)(i32 x, i32 y, u32 color);
     i32 width;
     i32 height;
-    i32 (*point_result)[];
+    i32 (*line_point_result)[];
+    i32 (*triangle_point_result01)[];
+    i32 (*triangle_point_result12)[];
+    i32 (*triangle_point_result02)[];
 } canvas;
 
 void render_frame(canvas canvas);

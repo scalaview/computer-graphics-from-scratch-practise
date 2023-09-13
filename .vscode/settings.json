@@ -12,6 +12,8 @@
         "logger.h": "c",
         "stdarg.h": "c",
         "stdlib.h": "c",
-        "rmath_types.h": "c"
+        "rmath_types.h": "c",
+        "algorithm": "c",
+        "xmemory": "c"
     }
 }

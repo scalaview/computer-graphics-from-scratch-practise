@@ -95,7 +95,10 @@ i32 WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd, i32 c
     GetClientRect(window, &rect);
     canvas_ctx.width = rect.right - rect.left;
     canvas_ctx.height = rect.bottom - rect.top;
-    canvas_ctx.point_result = malloc(sizeof(i32) * max(canvas_ctx.width, canvas_ctx.height));
+    canvas_ctx.line_point_result = malloc(sizeof(i32) * max(canvas_ctx.width, canvas_ctx.height));
+    canvas_ctx.triangle_point_result01 = malloc(sizeof(i32) * max(canvas_ctx.width, canvas_ctx.height));
+    canvas_ctx.triangle_point_result12 = malloc(sizeof(i32) * max(canvas_ctx.width, canvas_ctx.height));
+    canvas_ctx.triangle_point_result02 = malloc(sizeof(i32) * max(canvas_ctx.width, canvas_ctx.height));
 
     memory = VirtualAlloc(0, canvas_ctx.width * canvas_ctx.height * 4, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 
@@ -130,6 +133,9 @@ i32 WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd, i32 c
         StretchDIBits(DeviceContext, 0, 0, canvas_ctx.width, canvas_ctx.height, 0, 0, canvas_ctx.width, canvas_ctx.height, memory, &bitmap_info, DIB_RGB_COLORS, SRCCOPY);
     }
 
-    free(canvas_ctx.point_result);
+    free(canvas_ctx.line_point_result);
+    free(canvas_ctx.triangle_point_result01);
+    free(canvas_ctx.triangle_point_result12);
+    free(canvas_ctx.triangle_point_result02);
     return 0;
 }
