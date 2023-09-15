@@ -24,17 +24,15 @@ typedef union vec3_u
     {
         union
         {
-            f64 x, w, r;
+            f64 x, w;
         };
         union
         {
-            f64 y, h, g;
+            f64 y, h;
         };
         union
         {
-            f64 z, b;
+            f64 z, p;
         };
     };
 } vec3;
-
-typedef vec3 rgb;

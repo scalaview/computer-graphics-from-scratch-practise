@@ -13,6 +13,10 @@ typedef struct canvas
     i32 (*triangle_point_result01)[];
     i32 (*triangle_point_result12)[];
     i32 (*triangle_point_result02)[];
+    f64 (*shade_result01)[];
+    f64 (*shade_result12)[];
+    f64 (*shade_result02)[];
+    f64 (*shade_segment_result)[];
 } canvas;
 
 void render_frame(canvas canvas);

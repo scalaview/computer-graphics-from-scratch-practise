@@ -99,6 +99,10 @@ i32 WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd, i32 c
     canvas_ctx.triangle_point_result01 = malloc(sizeof(i32) * max(canvas_ctx.width, canvas_ctx.height));
     canvas_ctx.triangle_point_result12 = malloc(sizeof(i32) * max(canvas_ctx.width, canvas_ctx.height));
     canvas_ctx.triangle_point_result02 = malloc(sizeof(i32) * max(canvas_ctx.width, canvas_ctx.height));
+    canvas_ctx.shade_result01 = malloc(sizeof(f64) * max(canvas_ctx.width, canvas_ctx.height));
+    canvas_ctx.shade_result12 = malloc(sizeof(f64) * max(canvas_ctx.width, canvas_ctx.height));
+    canvas_ctx.shade_result02 = malloc(sizeof(f64) * max(canvas_ctx.width, canvas_ctx.height));
+    canvas_ctx.shade_segment_result = malloc(sizeof(f64) * max(canvas_ctx.width, canvas_ctx.height));
 
     memory = VirtualAlloc(0, canvas_ctx.width * canvas_ctx.height * 4, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 
@@ -137,5 +141,9 @@ i32 WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd, i32 c
     free(canvas_ctx.triangle_point_result01);
     free(canvas_ctx.triangle_point_result12);
     free(canvas_ctx.triangle_point_result02);
+    free(canvas_ctx.shade_result01);
+    free(canvas_ctx.shade_result12);
+    free(canvas_ctx.shade_result02);
+    free(canvas_ctx.shade_segment_result);
     return 0;
 }
