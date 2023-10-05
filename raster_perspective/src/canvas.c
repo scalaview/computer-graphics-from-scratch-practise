@@ -1,8 +1,8 @@
 #include <string.h>
 
 #include "canvas.h"
+#include "model.h"
 #include "logger.h"
-#include "rmath.h"
 
 const color backgroud_color = {.argb = 0xffffff};
 static const vec3 viewport_vector = {1, 1, 1};
@@ -110,6 +110,28 @@ void render_object(canvas ctx, vec3 (*vertices)[], triangle (*triangles)[])
     }
 }
 
+void render_instance(canvas ctx, instance instance)
+{
+    memset(ctx.projected, 0, sizeof(vec3) * ctx.projected_size);
+    for (i32 i = 0; i < ctx.projected_size; i++)
+    {
+        (*ctx.projected)[i] = project_vertex(ctx, vec3_add((*(instance.model->vertices))[i], instance.position));
+    }
+
+    for (i32 i = 0; i < ctx.triangle_size; i++)
+    {
+        render_triangle(ctx, (*(instance.model->triangles))[i], ctx.projected);
+    }
+}
+
+void render_scene(canvas ctx, instance (*instances)[], i32 instance_size)
+{
+    for (i32 i = 0; i < instance_size; i++)
+    {
+        render_instance(ctx, (*instances)[i]);
+    }
+}
+
 void render_frame(canvas canvas)
 {
     vec3 vertices[] = {
@@ -136,12 +158,13 @@ void render_frame(canvas canvas)
         {2, 6, 7, CYAN},
         {2, 7, 3, CYAN}};
 
-    // translate {-1.5, 0, 7}
-    for (i32 i = 0; i < canvas.projected_size; i++)
-    {
-        vertices[i].x -= 1.5;
-        vertices[i].z += 7;
-    }
+    model cube = {
+        &vertices,
+        &triangles};
 
-    render_object(canvas, &vertices, &triangles);
+    // translate {-1.5, 0, 7}
+    instance instances[] = {
+        {&cube, {-1.5, 0, 7}},
+        {&cube, {1.25, 2, 7.5}}};
+    render_scene(canvas, &instances, 2);
 }

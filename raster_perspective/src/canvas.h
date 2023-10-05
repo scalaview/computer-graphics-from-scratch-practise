@@ -15,11 +15,7 @@ typedef struct canvas
     i32 triangle_size;
 } canvas;
 
-typedef struct triangle
-{
-    u32 p1, p2, p3;
-    color color;
-} triangle;
+
 
 void render_frame(canvas canvas);
 extern const color backgroud_color;
