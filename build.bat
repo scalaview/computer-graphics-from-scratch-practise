@@ -24,4 +24,9 @@ make -f "Makefile.raster_triangle" clean
 make -f "Makefile.raster_triangle" all
 IF %ERRORLEVEL% NEQ 0 (echo Error:%ERRORLEVEL% && exit)
 
+REM raster_perspective
+make -f "Makefile.raster_perspective" clean
+make -f "Makefile.raster_perspective" all
+IF %ERRORLEVEL% NEQ 0 (echo Error:%ERRORLEVEL% && exit)
+
 ECHO "All assemblies built successfully."
