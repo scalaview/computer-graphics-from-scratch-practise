@@ -20,7 +20,9 @@ void draw_pixel(i32 x, i32 y, u32 color);
 canvas canvas_ctx = {
     .put_pixel = draw_pixel,
     .width = 0,
-    .height = 0};
+    .height = 0,
+    .projected_size = 8,
+    .triangle_size = 12};
 void *memory;
 
 void draw_pixel(i32 x, i32 y, u32 color)
@@ -96,6 +98,7 @@ i32 WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd, i32 c
     canvas_ctx.width = rect.right - rect.left;
     canvas_ctx.height = rect.bottom - rect.top;
     canvas_ctx.line_point_result = malloc(sizeof(i32) * max(canvas_ctx.width, canvas_ctx.height));
+    canvas_ctx.projected = malloc(sizeof(vec3) * canvas_ctx.projected_size);
 
     memory = VirtualAlloc(0, canvas_ctx.width * canvas_ctx.height * 4, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 
@@ -131,5 +134,6 @@ i32 WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd, i32 c
     }
 
     free(canvas_ctx.line_point_result);
+    free(canvas_ctx.projected);
     return 0;
 }
