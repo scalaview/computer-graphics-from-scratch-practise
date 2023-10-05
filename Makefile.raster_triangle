@@ -3,7 +3,7 @@ DIR := $(subst /,\,${CURDIR})
 BUILD_DIR := bin
 OBJ_DIR := obj
 
-ASSEMBLY := raster
+ASSEMBLY := raster_triangle
 EXTENSION := .exe
 COMPILER_FLAGS := -std=c99 -g -MD -Werror=vla -Wno-missing-braces -fdeclspec
 INCLUDE_FLAGS :=

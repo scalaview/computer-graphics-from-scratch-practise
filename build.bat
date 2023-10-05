@@ -19,9 +19,9 @@ make -f "Makefile.raytracer" clean
 make -f "Makefile.raytracer" all
 IF %ERRORLEVEL% NEQ 0 (echo Error:%ERRORLEVEL% && exit)
 
-REM raster
-make -f "Makefile.raster" clean
-make -f "Makefile.raster" all
+REM raster_triangle
+make -f "Makefile.raster_triangle" clean
+make -f "Makefile.raster_triangle" all
 IF %ERRORLEVEL% NEQ 0 (echo Error:%ERRORLEVEL% && exit)
 
 ECHO "All assemblies built successfully."
