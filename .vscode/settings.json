@@ -14,6 +14,9 @@
         "stdlib.h": "c",
         "rmath_types.h": "c",
         "algorithm": "c",
-        "xmemory": "c"
+        "xmemory": "c",
+        "math.h": "c",
+        "color.h": "c",
+        "optional": "c"
     }
 }

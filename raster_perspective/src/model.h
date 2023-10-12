@@ -1,5 +1,4 @@
 #pragma once
-#include "rmath.h"
 #include "define_types.h"
 #include "color.h"
 
@@ -19,4 +18,16 @@ typedef struct instance
 {
     model *model;
     vec3 position;
+    mat4x4 orientation;
+    f64 scale;
+    mat4x4 transform;
 } instance;
+
+mat4x4 make_transform_mm4(instance *instance);
+
+typedef struct camera
+{
+    vec3 position;
+    mat4x4 orientation;
+} camera;
+mat4x4 make_camera_matrix(camera *camera);
