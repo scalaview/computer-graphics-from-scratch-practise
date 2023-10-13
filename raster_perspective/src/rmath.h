@@ -149,3 +149,8 @@ RINLINE mat4x4 vec4_transpose(mat4x4 vector_mat)
         .vec_2 = {vector_mat.vec_0.z, vector_mat.vec_1.z, vector_mat.vec_2.z, vector_mat.vec_3.z},
         .vec_3 = {vector_mat.vec_0.w, vector_mat.vec_1.w, vector_mat.vec_2.w, vector_mat.vec_3.w}};
 }
+
+RINLINE vec3 vec4_to_vec3(vec4 vector)
+{
+    return (vec3){vector.x, vector.y, vector.z};
+}
