@@ -12,10 +12,8 @@ typedef struct canvas
     i32 (*line_point_result)[];
     vec3 (*projected)[];
     i32 projected_size;
-    i32 triangle_size;
+    f64 (*depth_buffer)[];
 } canvas;
-
-
 
 void render_frame(canvas canvas);
 extern const color backgroud_color;

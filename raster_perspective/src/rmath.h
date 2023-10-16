@@ -72,6 +72,14 @@ RINLINE vec3 vec3_mul_mv(vec3 vector_mat[], vec3 vector_0)
 #define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 
+RINLINE vec3 vec3_cross(vec3 vector_0, vec3 vector_1)
+{
+    return (vec3){
+        vector_0.y * vector_1.z - vector_0.z * vector_1.y,
+        vector_0.z * vector_1.x - vector_0.x * vector_1.z,
+        vector_0.x * vector_1.y - vector_0.y * vector_1.x};
+}
+
 // vec4 dot
 RINLINE f64 vec4_dot(vec4 vector_0, vec4 vector_1)
 {

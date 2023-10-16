@@ -17,6 +17,7 @@
         "xmemory": "c",
         "math.h": "c",
         "color.h": "c",
-        "optional": "c"
+        "optional": "c",
+        "stdbool.h": "c"
     }
 }
