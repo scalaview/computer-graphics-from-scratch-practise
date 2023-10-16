@@ -31,7 +31,7 @@ void vec3_swap(vec3 *p0, vec3 *p1)
     {                                                                                                    \
         f64 a = (d1 - d0) / (i1 - i0);                                                                   \
         f64 d = d0;                                                                                      \
-        for (i32 i = 0; i < i1 - i0; i++)                                                                \
+        for (i32 i = 0; i <= i1 - i0; i++)                                                               \
         {                                                                                                \
             (*out_result)[i] = d;                                                                        \
             d += a;                                                                                      \
@@ -43,7 +43,7 @@ INTERPOLATE_DEF(f64);
 
 RINLINE vec2 view_port_to_canvas(canvas ctx, f64 x, f64 y)
 {
-    return (vec2){(x * ctx.width / viewport_vector.w), (y * ctx.height / viewport_vector.h)};
+    return (vec2){round(x * ctx.width / viewport_vector.w), round(y * ctx.height / viewport_vector.h)};
 }
 
 #define PROJECT_VERTEX_HELPER(n) n##_project_vertex
@@ -64,7 +64,7 @@ void draw_line(canvas ctx, vec3 p0, vec3 p1, color color)
         {
             vec3_swap(&p0, &p1);
         }
-        memset(ctx.line_point_result, 0, sizeof(i32) * (p1.x - p0.x));
+        memset(ctx.line_point_result, 0, sizeof(i32) * (p1.x - p0.x + 1));
         i32_interpolate(p0.x, p0.y, p1.x, p1.y, ctx.line_point_result);
         for (i32 i = p0.x; i < p1.x; i++)
         {
@@ -79,7 +79,7 @@ void draw_line(canvas ctx, vec3 p0, vec3 p1, color color)
             vec3_swap(&p0, &p1);
         }
 
-        memset(ctx.line_point_result, 0, sizeof(i32) * (p1.y - p0.y));
+        memset(ctx.line_point_result, 0, sizeof(i32) * (p1.y - p0.y + 1));
         i32_interpolate(p0.y, p0.x, p1.y, p1.x, ctx.line_point_result);
         for (i32 i = p0.y; i < p1.y; i++)
         {
