@@ -14,9 +14,11 @@ const color YELLOW = {.r = 255, .g = 255, .b = 0, .alpha = 255};
 const color PURPLE = {.r = 255, .g = 0, .b = 255, .alpha = 255};
 const color CYAN = {.r = 0, .g = 255, .b = 255, .alpha = 255};
 const color WHITE = {.r = 255, .g = 255, .b = 255, .alpha = 255};
+const color BLACK = {.r = 0, .g = 0, .b = 0, .alpha = 255};
 #define STA_BUF_SIZE 64
 
 Bool enabled_cull_face = true;
+Bool draw_out_lines = true;
 
 f64 (*bufv01)[];
 f64 (*bufv12)[];
@@ -292,6 +294,15 @@ void draw_filled_triangle(canvas ctx, triangle triangle, vec3 (*vertices)[], vec
                 ctx.put_pixel(CENTER_TO_ZERO_X(ctx.width, x), CENTER_TO_ZERO_Y(ctx.height, y), triangle.color.argb);
             }
         }
+    }
+
+    // draw outlines
+    if (draw_out_lines)
+    {
+        color outline_color = color_mul_scalar(triangle.color, 0.75f);
+        draw_line(ctx, p0, p1, outline_color);
+        draw_line(ctx, p1, p2, outline_color);
+        draw_line(ctx, p2, p0, outline_color);
     }
 }
 
