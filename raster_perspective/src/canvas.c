@@ -16,6 +16,8 @@ const color CYAN = {.r = 0, .g = 255, .b = 255, .alpha = 255};
 const color WHITE = {.r = 255, .g = 255, .b = 255, .alpha = 255};
 #define STA_BUF_SIZE 64
 
+Bool enabled_cull_face = true;
+
 f64 (*bufv01)[];
 f64 (*bufv12)[];
 f64 (*bufv02)[];
@@ -76,7 +78,7 @@ PROJECT_VERTEX_DEF(vec4);
 
 void shuffle(triangle (*triangles)[], i32 count)
 {
-    for (i32 i = count - 1; i < 0; i--)
+    for (i32 i = count - 1; i > 0; i--)
     {
         i32 idx = rand() % (i + 1);
         triangle t = (*triangles)[idx];
@@ -206,7 +208,7 @@ void draw_filled_triangle(canvas ctx, triangle triangle, vec3 (*vertices)[], vec
 {
     vec3 normal = compute_triangle_normal((*vertices)[triangle.p1], (*vertices)[triangle.p2], (*vertices)[triangle.p3]);
     vec3 vertex_to_camera = vec3_mul_scalar((*vertices)[triangle.p1], -1);
-    if (!cull_back_faces(&vertex_to_camera, &normal))
+    if (enabled_cull_face && !cull_back_faces(&vertex_to_camera, &normal))
     {
         return;
     }
