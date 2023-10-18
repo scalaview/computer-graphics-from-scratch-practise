@@ -3,6 +3,11 @@
 #include <math.h>
 #include "rmath_types.h"
 
+RINLINE vec3 vec2_to_vec3(vec2 v)
+{
+    return (vec3){.x = v.x, .y = v.y, .z = 1};
+}
+
 RINLINE f64 vec3_dot(vec3 vector_0, vec3 vector_1)
 {
     f64 p = 0;
@@ -78,6 +83,11 @@ RINLINE vec3 vec3_cross(vec3 vector_0, vec3 vector_1)
         vector_0.y * vector_1.z - vector_0.z * vector_1.y,
         vector_0.z * vector_1.x - vector_0.x * vector_1.z,
         vector_0.x * vector_1.y - vector_0.y * vector_1.x};
+}
+
+RINLINE vec4 vec3_to_vec4(vec3 v)
+{
+    return (vec4){.x = v.x, .y = v.y, .z = v.z, .w = 1};
 }
 
 // vec4 dot

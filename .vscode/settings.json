@@ -18,6 +18,11 @@
         "math.h": "c",
         "color.h": "c",
         "optional": "c",
-        "stdbool.h": "c"
+        "stdbool.h": "c",
+        "cmath": "c",
+        "bit": "c",
+        "compare": "c",
+        "cstddef": "c",
+        "limits": "c"
     }
 }

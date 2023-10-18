@@ -3,6 +3,7 @@
 #include "define_types.h"
 #include "canvas.h"
 #include "logger.h"
+#include "model.h"
 #include <stdlib.h>
 
 #define assert(c)           \
@@ -16,12 +17,13 @@
 #pragma comment(lib, "gdi32.lib")
 
 void draw_pixel(i32 x, i32 y, u32 color);
+i32 window_width = 616;
+i32 window_height = 616;
 
 canvas canvas_ctx = {
     .put_pixel = draw_pixel,
-    .width = 600,
-    .height = 600,
-    .projected_size = 8};
+    .width = 605,
+    .height = 605};
 void *memory;
 
 void draw_pixel(i32 x, i32 y, u32 color)
@@ -85,7 +87,7 @@ i32 WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd, i32 c
     ATOM atom = RegisterClassW(&window_class);
     assert(atom && "Failed to register a window");
 
-    HWND window = CreateWindowW(window_class.lpszClassName, L"Raster", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, canvas_ctx.width, canvas_ctx.height, NULL, NULL, instance, NULL);
+    HWND window = CreateWindowW(window_class.lpszClassName, L"Raster", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, window_width, window_height, NULL, NULL, instance, NULL);
     assert(window && "Failed to create a window");
 
     ShowWindow(window, cmd_show);
@@ -94,27 +96,14 @@ i32 WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd, i32 c
 
     RECT rect;
     GetClientRect(window, &rect);
+    canvas_ctx.width = rect.right - rect.left;
+    canvas_ctx.height = rect.bottom - rect.top;
     canvas_ctx.line_point_result = malloc(sizeof(i32) * max(canvas_ctx.width, canvas_ctx.height));
-    canvas_ctx.projected = malloc(sizeof(vec3) * canvas_ctx.projected_size);
     canvas_ctx.depth_buffer = malloc(sizeof(f64) * canvas_ctx.width * canvas_ctx.height);
 
-    extern f64(*bufv01)[];
-    bufv01 = malloc(sizeof(f64) * canvas_ctx.width * canvas_ctx.height);
-    extern f64(*bufv12)[];
-    bufv12 = malloc(sizeof(f64) * canvas_ctx.width * canvas_ctx.height);
-    extern f64(*bufv02)[];
-    bufv02 = malloc(sizeof(f64) * canvas_ctx.width * canvas_ctx.height);
-
-    extern f64(*x02)[];
-    x02 = malloc(sizeof(f64) * canvas_ctx.width * canvas_ctx.height);
-    extern f64(*x012)[];
-    x012 = malloc(sizeof(f64) * canvas_ctx.width * canvas_ctx.height);
-    extern f64(*iz02)[];
-    iz02 = malloc(sizeof(f64) * canvas_ctx.width * canvas_ctx.height);
-    extern f64(*iz012)[];
-    iz012 = malloc(sizeof(f64) * canvas_ctx.width * canvas_ctx.height);
-    extern f64(*zscan)[];
-    zscan = malloc(sizeof(f64) * canvas_ctx.width * canvas_ctx.height);
+    initialize_models();
+    initialize_instances();
+    prepare_memory_buffer(canvas_ctx);
 
     memory = VirtualAlloc(0, canvas_ctx.width * canvas_ctx.height * 4, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 
@@ -150,15 +139,9 @@ i32 WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd, i32 c
     }
 
     free(canvas_ctx.line_point_result);
-    free(canvas_ctx.projected);
     free(canvas_ctx.depth_buffer);
-    free(bufv01);
-    free(bufv12);
-    free(bufv02);
-    free(x02);
-    free(x012);
-    free(iz02);
-    free(iz012);
-    free(zscan);
+    free_memory_buffer();
+    free_instances();
+    free_models();
     return 0;
 }
