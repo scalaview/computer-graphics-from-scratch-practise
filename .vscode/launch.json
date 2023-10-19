@@ -36,6 +36,17 @@
             "cwd": "${workspaceFolder}/bin/",
             "environment": [],
             "console": "integratedTerminal",
+        },
+        {
+            "name": "Raster Textures Launch",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bin/raster_textures.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/bin/",
+            "environment": [],
+            "console": "integratedTerminal",
         }
     ]
 }
