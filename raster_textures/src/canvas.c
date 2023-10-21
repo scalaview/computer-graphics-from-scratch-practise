@@ -3,6 +3,8 @@
 #include "canvas.h"
 #include "model.h"
 #include "logger.h"
+#include "image.h"
+
 #include <stdlib.h>
 
 const color backgroud_color = {.argb = 0xffffff};
@@ -17,6 +19,8 @@ shading_model shading_model_config = {.type = SM_PHONG};
 
 i16 lighting_model = LM_DIFFUSE | LM_SPECULAR;
 
+Bool use_perspective_correct_depth = false;
+
 f64 (*bufv01)[];
 f64 (*bufv12)[];
 f64 (*bufv02)[];
@@ -26,6 +30,10 @@ f64 (*x012)[];
 f64 (*iz02)[];
 f64 (*iz012)[];
 f64 (*zscan)[];
+f64 (*uz02)[];
+f64 (*uz012)[];
+f64 (*vz02)[];
+f64 (*vz012)[];
 
 f64 (*i02)[];
 f64 (*i012)[];
@@ -39,6 +47,8 @@ f64 (*iscan)[];
 f64 (*nxscan)[];
 f64 (*nyscan)[];
 f64 (*nzscan)[];
+f64 (*uzscan)[];
+f64 (*vzscan)[];
 
 void vec3_swap(vec3 *p0, vec3 *p1)
 {
@@ -104,6 +114,17 @@ void shuffle(triangle (*triangles)[], i32 count)
         (*triangles)[idx] = (*triangles)[i];
         (*triangles)[i] = t;
     }
+}
+
+RINLINE color get_texture_color(image *texture, f64 x, f64 y)
+{
+    i32 iu = x * texture->width;
+    i32 iv = y * texture->height;
+    i32 max_pixel = texture->width * texture->height * texture->channels;
+    i32 pixel_index = (iv * texture->width + iu) * texture->channels;
+    if (pixel_index + 2 >= max_pixel)
+        return (color){.argb = 0};
+    return (color){.r = texture->data[pixel_index], .g = texture->data[pixel_index + 1], .b = texture->data[pixel_index + 2]};
 }
 
 f64 compute_illumination(vec3 vertex, vec3 normal, camera *camera, light (*lights)[], i32 lights_count)
@@ -322,6 +343,20 @@ void draw_filled_triangle(canvas ctx, triangle triangle, vec3 (*vertices)[], vec
     edge_interpolate(p0.y, p0.x, p1.y, p1.x, p2.y, p2.x, x02, x012);
     edge_interpolate(p0.y, 1.0f / v0.z, p1.y, 1.0f / v1.z, p2.y, 1.0f / v2.z, iz02, iz012);
 
+    if (triangle.texture)
+    {
+        if (use_perspective_correct_depth)
+        {
+            edge_interpolate(p0.y, triangle.uvs[i0].x / v0.z, p1.y, triangle.uvs[i1].x / v1.z, p2.y, triangle.uvs[i2].x / v2.z, uz02, uz012);
+            edge_interpolate(p0.y, triangle.uvs[i0].y / v0.z, p1.y, triangle.uvs[i1].y / v1.z, p2.y, triangle.uvs[i2].y / v2.z, vz02, vz012);
+        }
+        else
+        {
+            edge_interpolate(p0.y, triangle.uvs[i0].x, p1.y, triangle.uvs[i1].x, p2.y, triangle.uvs[i2].x, uz02, uz012);
+            edge_interpolate(p0.y, triangle.uvs[i0].y, p1.y, triangle.uvs[i1].y, p2.y, triangle.uvs[i2].y, vz02, vz012);
+        }
+    }
+
     vec3 normal0 = normal, normal1 = normal, normal2 = normal;
     if (use_vertex_normals)
     {
@@ -373,6 +408,12 @@ void draw_filled_triangle(canvas ctx, triangle triangle, vec3 (*vertices)[], vec
     f64(*nz_left)[];
     f64(*nz_right)[];
 
+    f64(*uz_left)[];
+    f64(*uz_right)[];
+
+    f64(*vz_left)[];
+    f64(*vz_right)[];
+
     i32 left_len = 0, right_len = 0;
 
     if ((*x02)[middle] < (*x012)[middle])
@@ -397,6 +438,12 @@ void draw_filled_triangle(canvas ctx, triangle triangle, vec3 (*vertices)[], vec
 
         left_len = len_02;
         right_len = len_012;
+
+        uz_left = uz02;
+        uz_right = uz012;
+
+        vz_left = vz02;
+        vz_right = vz012;
     }
     else
     {
@@ -420,6 +467,12 @@ void draw_filled_triangle(canvas ctx, triangle triangle, vec3 (*vertices)[], vec
 
         left_len = len_012;
         right_len = len_02;
+
+        uz_left = uz012;
+        uz_right = uz02;
+
+        vz_left = vz012;
+        vz_right = vz02;
     }
 
     for (i32 y = p0.y; y <= p2.y; y++)
@@ -461,12 +514,19 @@ void draw_filled_triangle(canvas ctx, triangle triangle, vec3 (*vertices)[], vec
             f64_interpolate(x_l, nz_l, x_r, nz_r, nzscan);
         }
 
+        if (triangle.texture)
+        {
+            f64_interpolate(x_l, (*uz_left)[i_y], x_r, (*uz_right)[i_y], uzscan);
+            f64_interpolate(x_l, (*vz_left)[i_y], x_r, (*vz_right)[i_y], vzscan);
+        }
+
         for (i32 x = x_l; x <= x_r; x++)
         {
             i32 i_x = x - x_l;
             f64 inv_z = (*zscan)[i_x];
             if (update_depth_buffer_if_closer(ctx, x, y, inv_z))
             {
+                color color = triangle.color;
                 if (shading_model_config.type == SM_FLAT)
                 {
                     // Just use the per-triangle intensity.
@@ -481,7 +541,24 @@ void draw_filled_triangle(canvas ctx, triangle triangle, vec3 (*vertices)[], vec
                     vec3 normal = (vec3){(*nxscan)[i_x], (*nyscan)[i_x], (*nzscan)[i_x]};
                     intensity = compute_illumination(vertex, normal, camera, lights, lights_count);
                 }
-                ctx.put_pixel(CENTER_TO_ZERO_X(ctx.width, x), CENTER_TO_ZERO_Y(ctx.height, y), color_mul_scalar(triangle.color, intensity).argb);
+
+                if (triangle.texture)
+                {
+                    f64 u = 0.0, v = 0.0;
+                    if (use_perspective_correct_depth)
+                    {
+                        u = (*uzscan)[i_x] / (*zscan)[i_x];
+                        v = (*vzscan)[i_x] / (*zscan)[i_x];
+                    }
+                    else
+                    {
+                        u = (*uzscan)[i_x];
+                        v = (*vzscan)[i_x];
+                    }
+                    color = get_texture_color(triangle.texture, u, v);
+                }
+
+                ctx.put_pixel(CENTER_TO_ZERO_X(ctx.width, x), CENTER_TO_ZERO_Y(ctx.height, y), color_mul_scalar(color, intensity).argb);
             }
         }
     }
@@ -619,6 +696,23 @@ void render_scene(canvas ctx, camera *camera, instance (*instances)[], i32 insta
     }
 }
 
+void render_image(canvas ctx)
+{
+    extern image img;
+    for (int y = 0; y < ctx.height; y++)
+    {
+        for (int x = 0; x < ctx.width; x++)
+        {
+            int pixel_index = (y * ctx.width + x) * img.channels;
+            unsigned char red = img.data[pixel_index];
+            unsigned char green = img.data[pixel_index + 1];
+            unsigned char blue = img.data[pixel_index + 2];
+            color color = {.r = red, .g = green, .b = blue};
+            ctx.put_pixel(x, y, color.argb);
+        }
+    }
+}
+
 void render_frame(canvas canvas)
 {
     extern model cube;
@@ -655,11 +749,18 @@ void prepare_memory_buffer(canvas canvas_ctx)
     x012 = malloc(sizeof(f64) * canvas_ctx.width * canvas_ctx.height);
     iz02 = malloc(sizeof(f64) * canvas_ctx.width * canvas_ctx.height);
     iz012 = malloc(sizeof(f64) * canvas_ctx.width * canvas_ctx.height);
+    uz02 = malloc(sizeof(f64) * canvas_ctx.width * canvas_ctx.height);
+    uz012 = malloc(sizeof(f64) * canvas_ctx.width * canvas_ctx.height);
+    vz02 = malloc(sizeof(f64) * canvas_ctx.width * canvas_ctx.height);
+    vz012 = malloc(sizeof(f64) * canvas_ctx.width * canvas_ctx.height);
+
     zscan = malloc(sizeof(f64) * canvas_ctx.width * canvas_ctx.height);
     iscan = malloc(sizeof(f64) * canvas_ctx.width * canvas_ctx.height);
     nxscan = malloc(sizeof(f64) * canvas_ctx.width * canvas_ctx.height);
     nyscan = malloc(sizeof(f64) * canvas_ctx.width * canvas_ctx.height);
     nzscan = malloc(sizeof(f64) * canvas_ctx.width * canvas_ctx.height);
+    uzscan = malloc(sizeof(f64) * canvas_ctx.width * canvas_ctx.height);
+    vzscan = malloc(sizeof(f64) * canvas_ctx.width * canvas_ctx.height);
 
     i02 = malloc(sizeof(f64) * canvas_ctx.width * canvas_ctx.height);
     i012 = malloc(sizeof(f64) * canvas_ctx.width * canvas_ctx.height);
@@ -680,6 +781,11 @@ void free_memory_buffer()
     free(x012);
     free(iz02);
     free(iz012);
+    free(uz02);
+    free(uz012);
+    free(vz02);
+    free(vz012);
+
     free(zscan);
     free(i02);
     free(i012);
@@ -693,4 +799,6 @@ void free_memory_buffer()
     free(nxscan);
     free(nyscan);
     free(nzscan);
+    free(uzscan);
+    free(vzscan);
 }

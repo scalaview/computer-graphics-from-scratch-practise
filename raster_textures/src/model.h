@@ -1,12 +1,15 @@
 #pragma once
 #include "define_types.h"
 #include "color.h"
+#include "image.h"
 
 typedef struct triangle
 {
     u32 p1, p2, p3;
     color color;
     vec3 normals[3];
+    image *texture;
+    vec2 uvs[3]; // texture points
 } triangle;
 
 typedef struct model

@@ -23,6 +23,8 @@
         "bit": "c",
         "compare": "c",
         "cstddef": "c",
-        "limits": "c"
+        "limits": "c",
+        "image.h": "c",
+        "stb_image.h": "c"
     }
 }

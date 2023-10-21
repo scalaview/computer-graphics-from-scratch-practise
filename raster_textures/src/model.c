@@ -1,7 +1,10 @@
-#include "model.h"
-#include "rmath.h"
+
 #include <stdlib.h>
 #include <string.h>
+
+#include "model.h"
+#include "rmath.h"
+#include "logger.h"
 
 extern const color BLUE;
 extern const color RED;
@@ -35,14 +38,10 @@ model cube = {
     .triangles_count = 12,
     .bounds_center = {0, 0, 0}};
 
-// sphere model
-i32 divs = 15;
-vec3 sphere_vertices[(15 + 1) * 15];
-triangle sphere_triangles[2 * 15 * 15];
-model sphere = {.vertices = &sphere_vertices, .triangles = &sphere_triangles, .vertices_count = (15 + 1) * 15, .triangles_count = 2 * 15 * 15};
-
 i32 instances_count = 3;
 instance (*instances)[];
+
+image img;
 
 mat4x4 make_transform_mm4(instance *instance)
 {
@@ -87,21 +86,38 @@ void generate_sphere_model(i32 divs, color color, model *out_model)
     }
 }
 
+void load_model_resources()
+{
+    // read images
+    if (!read_image_from_file("../assets/crate-texture.jpg", &img))
+    {
+        DEBUG("Failed to load image");
+        return;
+    }
+}
+
+void free_model_resources()
+{
+    free_image(&img);
+}
+
 void initialize_models()
 {
+    load_model_resources();
+
     triangle triangles[] = {
-        {0, 1, 2, RED, .normals = {{0, 0, 1}, {0, 0, 1}, {0, 0, 1}}},
-        {0, 2, 3, RED, .normals = {{0, 0, 1}, {0, 0, 1}, {0, 0, 1}}},
-        {4, 0, 3, GREEN, .normals = {{1, 0, 0}, {1, 0, 0}, {1, 0, 0}}},
-        {4, 3, 7, GREEN, .normals = {{1, 0, 0}, {1, 0, 0}, {1, 0, 0}}},
-        {5, 4, 7, BLUE, .normals = {{0, 0, -1}, {0, 0, -1}, {0, 0, -1}}},
-        {5, 7, 6, BLUE, .normals = {{0, 0, -1}, {0, 0, -1}, {0, 0, -1}}},
-        {1, 5, 6, YELLOW, .normals = {{-1, 0, 0}, {-1, 0, 0}, {-1, 0, 0}}},
-        {1, 6, 2, YELLOW, .normals = {{-1, 0, 0}, {-1, 0, 0}, {-1, 0, 0}}},
-        {1, 0, 5, PURPLE, .normals = {{0, 1, 0}, {0, 1, 0}, {0, 1, 0}}},
-        {5, 0, 4, PURPLE, .normals = {{0, 1, 0}, {0, 1, 0}, {0, 1, 0}}},
-        {2, 6, 7, CYAN, .normals = {{0, -1, 0}, {0, -1, 0}, {0, -1, 0}}},
-        {2, 7, 3, CYAN, .normals = {{0, -1, 0}, {0, -1, 0}, {0, -1, 0}}}};
+        {0, 1, 2, RED, .normals = {{0, 0, 1}, {0, 0, 1}, {0, 0, 1}}, .texture = &img, .uvs = {{0, 0}, {1, 0}, {1, 1}}},
+        {0, 2, 3, RED, .normals = {{0, 0, 1}, {0, 0, 1}, {0, 0, 1}}, .texture = &img, .uvs = {{0, 0}, {1, 1}, {0, 1}}},
+        {4, 0, 3, GREEN, .normals = {{1, 0, 0}, {1, 0, 0}, {1, 0, 0}}, .texture = &img, .uvs = {{0, 0}, {1, 0}, {1, 1}}},
+        {4, 3, 7, GREEN, .normals = {{1, 0, 0}, {1, 0, 0}, {1, 0, 0}}, .texture = &img, .uvs = {{0, 0}, {1, 1}, {0, 1}}},
+        {5, 4, 7, BLUE, .normals = {{0, 0, -1}, {0, 0, -1}, {0, 0, -1}}, .texture = &img, .uvs = {{0, 0}, {1, 0}, {1, 1}}},
+        {5, 7, 6, BLUE, .normals = {{0, 0, -1}, {0, 0, -1}, {0, 0, -1}}, .texture = &img, .uvs = {{0, 0}, {1, 1}, {0, 1}}},
+        {1, 5, 6, YELLOW, .normals = {{-1, 0, 0}, {-1, 0, 0}, {-1, 0, 0}}, .texture = &img, .uvs = {{0, 0}, {1, 0}, {1, 1}}},
+        {1, 6, 2, YELLOW, .normals = {{-1, 0, 0}, {-1, 0, 0}, {-1, 0, 0}}, .texture = &img, .uvs = {{0, 0}, {1, 1}, {0, 1}}},
+        {1, 0, 5, PURPLE, .normals = {{0, 1, 0}, {0, 1, 0}, {0, 1, 0}}, .texture = &img, .uvs = {{0, 0}, {1, 0}, {1, 1}}},
+        {5, 0, 4, PURPLE, .normals = {{0, 1, 0}, {0, 1, 0}, {0, 1, 0}}, .texture = &img, .uvs = {{0, 1}, {1, 1}, {0, 0}}},
+        {2, 6, 7, CYAN, .normals = {{0, -1, 0}, {0, -1, 0}, {0, -1, 0}}, .texture = &img, .uvs = {{0, 0}, {1, 0}, {1, 1}}},
+        {2, 7, 3, CYAN, .normals = {{0, -1, 0}, {0, -1, 0}, {0, -1, 0}}, .texture = &img, .uvs = {{0, 0}, {1, 1}, {0, 1}}}};
     cube.triangles_count = 12;
     cube.bounds_radius = sqrt(3);
     cube.triangles = malloc(sizeof(triangle) * cube.triangles_count);
@@ -110,12 +126,6 @@ void initialize_models()
     cube.transform_and_clip_new_triangles = malloc(sizeof(triangle) * cube.triangles_count);
     cube.render_scene_vertexs = malloc(sizeof(vec3) * cube.vertices_count);
     cube.render_scene_triangles = malloc(sizeof(triangle) * cube.triangles_count);
-
-    sphere.transform_and_clip_triangles = malloc(sizeof(triangle) * sphere.triangles_count);
-    sphere.transform_and_clip_new_triangles = malloc(sizeof(triangle) * sphere.triangles_count);
-    sphere.render_scene_vertexs = malloc(sizeof(vec3) * sphere.vertices_count);
-    sphere.render_scene_triangles = malloc(sizeof(triangle) * sphere.triangles_count);
-    generate_sphere_model(divs, GREEN, &sphere);
 }
 
 void free_models()
@@ -124,11 +134,7 @@ void free_models()
     free(cube.transform_and_clip_new_triangles);
     free(cube.render_scene_vertexs);
     free(cube.render_scene_triangles);
-
-    free(sphere.transform_and_clip_triangles);
-    free(sphere.transform_and_clip_new_triangles);
-    free(sphere.render_scene_vertexs);
-    free(sphere.render_scene_triangles);
+    free_model_resources();
 }
 
 void initialize_instances()
@@ -136,10 +142,9 @@ void initialize_instances()
     instance t_instances[3] = {
         {.model = &cube, .position = {-1.5, 0, 7}, .orientation = identity4x4, .scale = 0.75},
         {.model = &cube, .position = {1.25, 2.5, 7.5}, .orientation = vec4_make_rotation_matrix(195), .scale = 1},
-        {.model = &sphere, .position = {1.75, -0.5, 7}, .orientation = identity4x4, .scale = 1.5}};
+        {.model = &cube, .position = {1.75, 0, 5}, .orientation = vec4_make_rotation_matrix(-30), .scale = 1}};
     instances = malloc(sizeof(instance) * instances_count);
     memcpy(instances, &t_instances, sizeof(instance) * instances_count);
-    i32 instances_count = 3;
     for (i16 i = 0; i < instances_count; i++)
     {
         (*instances)[i].transform = make_transform_mm4(&((*instances)[i]));
