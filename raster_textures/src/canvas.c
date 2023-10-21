@@ -4,13 +4,15 @@
 #include "model.h"
 #include "logger.h"
 #include "image.h"
-
 #include <stdlib.h>
 
 const color backgroud_color = {.argb = 0xffffff};
 static const vec3 viewport_vector = {1, 1, 1};
 
 #define STA_BUF_SIZE 450
+
+const i32 GT_POINT = 0;
+const i32 GT_BILINEAR = 1;
 
 Bool enabled_cull_face = true;
 Bool draw_out_lines = false;
@@ -19,7 +21,7 @@ shading_model shading_model_config = {.type = SM_PHONG};
 
 i16 lighting_model = LM_DIFFUSE | LM_SPECULAR;
 
-Bool use_perspective_correct_depth = false;
+Bool use_perspective_correct_depth = true;
 
 f64 (*bufv01)[];
 f64 (*bufv12)[];
@@ -116,15 +118,43 @@ void shuffle(triangle (*triangles)[], i32 count)
     }
 }
 
-RINLINE color get_texture_color(image *texture, f64 x, f64 y)
+RINLINE color get_texture_color(image *texture, f64 x, f64 y, i32 filter)
 {
-    i32 iu = x * texture->width;
-    i32 iv = y * texture->height;
     i32 max_pixel = texture->width * texture->height * texture->channels;
-    i32 pixel_index = (iv * texture->width + iu) * texture->channels;
-    if (pixel_index + 2 >= max_pixel)
-        return (color){.argb = 0};
-    return (color){.r = texture->data[pixel_index], .g = texture->data[pixel_index + 1], .b = texture->data[pixel_index + 2]};
+
+    if (filter == GT_BILINEAR)
+    {
+        f64 u = x * texture->width - 0.5;
+        f64 v = y * texture->height - 0.5;
+
+        i32 iu = (i32)u;
+        i32 iv = (i32)v;
+
+        f64 ublend = u - iu;
+        f64 vblend = v - iv;
+
+        f64 uother = 1.0 - ublend;
+        f64 vother = 1.0 - vblend;
+
+        i32 offset00 = (iv * texture->width + iu) * texture->channels;
+        i32 offset10 = offset00 + texture->channels;
+        i32 offset01 = offset00 + texture->width * texture->channels;
+        i32 offset11 = offset10 + texture->width * texture->channels;
+        if (offset00 >= max_pixel || offset10 >= max_pixel || offset01 >= max_pixel || offset11 >= max_pixel)
+            return (color){.argb = 0};
+
+        u32 r = (texture->data[offset00] * uother + texture->data[offset10] * ublend) * vother + (texture->data[offset01] * uother + texture->data[offset11] * ublend) * vblend;
+        return (color){.r = r, .g = r, .b = r};
+    }
+    else
+    {
+        i32 iu = x * texture->width;
+        i32 iv = y * texture->height;
+        i32 pixel_index = (iv * texture->width + iu) * texture->channels;
+        if (pixel_index + 2 >= max_pixel)
+            return (color){.argb = 0};
+        return (color){.r = texture->data[pixel_index], .g = texture->data[pixel_index + 1], .b = texture->data[pixel_index + 2]};
+    }
 }
 
 f64 compute_illumination(vec3 vertex, vec3 normal, camera *camera, light (*lights)[], i32 lights_count)
@@ -299,7 +329,7 @@ Bool update_depth_buffer_if_closer(canvas ctx, i32 x, i32 y, f64 inv_z)
         return False;
 
     i32 offset = p_x + p_y * ctx.width;
-    if ((*ctx.depth_buffer)[offset] == 0 || (*ctx.depth_buffer)[offset] < inv_z)
+    if (((*ctx.depth_buffer)[offset] == 0 && inv_z != 0) || (*ctx.depth_buffer)[offset] < inv_z)
     {
         (*ctx.depth_buffer)[offset] = inv_z;
         return True;
@@ -520,7 +550,8 @@ void draw_filled_triangle(canvas ctx, triangle triangle, vec3 (*vertices)[], vec
             f64_interpolate(x_l, (*vz_left)[i_y], x_r, (*vz_right)[i_y], vzscan);
         }
 
-        for (i32 x = x_l; x <= x_r; x++)
+        i32 end_x_r = round(x_r);
+        for (i32 x = x_l; x <= end_x_r; x++)
         {
             i32 i_x = x - x_l;
             f64 inv_z = (*zscan)[i_x];
@@ -547,17 +578,16 @@ void draw_filled_triangle(canvas ctx, triangle triangle, vec3 (*vertices)[], vec
                     f64 u = 0.0, v = 0.0;
                     if (use_perspective_correct_depth)
                     {
-                        u = (*uzscan)[i_x] / (*zscan)[i_x];
-                        v = (*vzscan)[i_x] / (*zscan)[i_x];
+                        u = (*uzscan)[i_x] / inv_z;
+                        v = (*vzscan)[i_x] / inv_z;
                     }
                     else
                     {
                         u = (*uzscan)[i_x];
                         v = (*vzscan)[i_x];
                     }
-                    color = get_texture_color(triangle.texture, u, v);
+                    color = get_texture_color(triangle.texture, u, v, GT_BILINEAR);
                 }
-
                 ctx.put_pixel(CENTER_TO_ZERO_X(ctx.width, x), CENTER_TO_ZERO_Y(ctx.height, y), color_mul_scalar(color, intensity).argb);
             }
         }
@@ -696,17 +726,17 @@ void render_scene(canvas ctx, camera *camera, instance (*instances)[], i32 insta
     }
 }
 
-void render_image(canvas ctx)
+void render_image(canvas ctx, image *img)
 {
-    extern image img;
+    extern image wood_texture;
     for (int y = 0; y < ctx.height; y++)
     {
         for (int x = 0; x < ctx.width; x++)
         {
-            int pixel_index = (y * ctx.width + x) * img.channels;
-            unsigned char red = img.data[pixel_index];
-            unsigned char green = img.data[pixel_index + 1];
-            unsigned char blue = img.data[pixel_index + 2];
+            int pixel_index = (y * ctx.width + x) * img->channels;
+            unsigned char red = img->data[pixel_index];
+            unsigned char green = img->data[pixel_index + 1];
+            unsigned char blue = img->data[pixel_index + 2];
             color color = {.r = red, .g = green, .b = blue};
             ctx.put_pixel(x, y, color.argb);
         }
@@ -728,7 +758,7 @@ void render_frame(canvas canvas)
         {(vec3){0, -sqrt2, sqrt2}, 0}, // Top
         {(vec3){0, sqrt2, sqrt2}, 0},  // Bottom
     };
-    camera camera = {{-3, 1, 2}, vec4_make_rotation_matrix(-30), &clipping_planes, 5};
+    camera camera = {{0, 0, 0}, vec4_make_rotation_matrix(0), &clipping_planes, 5};
 
     light lights[3] = {
         {.type = LIGHT_AMBIENT, .intensity = 0.2},

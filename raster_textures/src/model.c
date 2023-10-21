@@ -38,10 +38,11 @@ model cube = {
     .triangles_count = 12,
     .bounds_center = {0, 0, 0}};
 
-i32 instances_count = 3;
+i32 instances_count = 2;
 instance (*instances)[];
 
-image img;
+image wood_texture;
+image checkerboard_texture;
 
 mat4x4 make_transform_mm4(instance *instance)
 {
@@ -89,7 +90,13 @@ void generate_sphere_model(i32 divs, color color, model *out_model)
 void load_model_resources()
 {
     // read images
-    if (!read_image_from_file("../assets/crate-texture.jpg", &img))
+    if (!read_image_from_file("../assets/crate-texture.jpg", &wood_texture))
+    {
+        DEBUG("Failed to load image");
+        return;
+    }
+
+    if (!read_image_from_file("../assets/checkerboard.png", &checkerboard_texture))
     {
         DEBUG("Failed to load image");
         return;
@@ -98,7 +105,8 @@ void load_model_resources()
 
 void free_model_resources()
 {
-    free_image(&img);
+    free_image(&wood_texture);
+    free_image(&checkerboard_texture);
 }
 
 void initialize_models()
@@ -106,18 +114,18 @@ void initialize_models()
     load_model_resources();
 
     triangle triangles[] = {
-        {0, 1, 2, RED, .normals = {{0, 0, 1}, {0, 0, 1}, {0, 0, 1}}, .texture = &img, .uvs = {{0, 0}, {1, 0}, {1, 1}}},
-        {0, 2, 3, RED, .normals = {{0, 0, 1}, {0, 0, 1}, {0, 0, 1}}, .texture = &img, .uvs = {{0, 0}, {1, 1}, {0, 1}}},
-        {4, 0, 3, GREEN, .normals = {{1, 0, 0}, {1, 0, 0}, {1, 0, 0}}, .texture = &img, .uvs = {{0, 0}, {1, 0}, {1, 1}}},
-        {4, 3, 7, GREEN, .normals = {{1, 0, 0}, {1, 0, 0}, {1, 0, 0}}, .texture = &img, .uvs = {{0, 0}, {1, 1}, {0, 1}}},
-        {5, 4, 7, BLUE, .normals = {{0, 0, -1}, {0, 0, -1}, {0, 0, -1}}, .texture = &img, .uvs = {{0, 0}, {1, 0}, {1, 1}}},
-        {5, 7, 6, BLUE, .normals = {{0, 0, -1}, {0, 0, -1}, {0, 0, -1}}, .texture = &img, .uvs = {{0, 0}, {1, 1}, {0, 1}}},
-        {1, 5, 6, YELLOW, .normals = {{-1, 0, 0}, {-1, 0, 0}, {-1, 0, 0}}, .texture = &img, .uvs = {{0, 0}, {1, 0}, {1, 1}}},
-        {1, 6, 2, YELLOW, .normals = {{-1, 0, 0}, {-1, 0, 0}, {-1, 0, 0}}, .texture = &img, .uvs = {{0, 0}, {1, 1}, {0, 1}}},
-        {1, 0, 5, PURPLE, .normals = {{0, 1, 0}, {0, 1, 0}, {0, 1, 0}}, .texture = &img, .uvs = {{0, 0}, {1, 0}, {1, 1}}},
-        {5, 0, 4, PURPLE, .normals = {{0, 1, 0}, {0, 1, 0}, {0, 1, 0}}, .texture = &img, .uvs = {{0, 1}, {1, 1}, {0, 0}}},
-        {2, 6, 7, CYAN, .normals = {{0, -1, 0}, {0, -1, 0}, {0, -1, 0}}, .texture = &img, .uvs = {{0, 0}, {1, 0}, {1, 1}}},
-        {2, 7, 3, CYAN, .normals = {{0, -1, 0}, {0, -1, 0}, {0, -1, 0}}, .texture = &img, .uvs = {{0, 0}, {1, 1}, {0, 1}}}};
+        {0, 1, 2, RED, .normals = {{0, 0, 1}, {0, 0, 1}, {0, 0, 1}}, .texture = &checkerboard_texture, .uvs = {{0, 0}, {1, 0}, {1, 1}}},
+        {0, 2, 3, RED, .normals = {{0, 0, 1}, {0, 0, 1}, {0, 0, 1}}, .texture = &checkerboard_texture, .uvs = {{0, 0}, {1, 1}, {0, 1}}},
+        {4, 0, 3, GREEN, .normals = {{1, 0, 0}, {1, 0, 0}, {1, 0, 0}}, .texture = &checkerboard_texture, .uvs = {{0, 0}, {1, 0}, {1, 1}}},
+        {4, 3, 7, GREEN, .normals = {{1, 0, 0}, {1, 0, 0}, {1, 0, 0}}, .texture = &checkerboard_texture, .uvs = {{0, 0}, {1, 1}, {0, 1}}},
+        {5, 4, 7, BLUE, .normals = {{0, 0, -1}, {0, 0, -1}, {0, 0, -1}}, .texture = &checkerboard_texture, .uvs = {{0, 0}, {1, 0}, {1, 1}}},
+        {5, 7, 6, BLUE, .normals = {{0, 0, -1}, {0, 0, -1}, {0, 0, -1}}, .texture = &checkerboard_texture, .uvs = {{0, 0}, {1, 1}, {0, 1}}},
+        {1, 5, 6, YELLOW, .normals = {{-1, 0, 0}, {-1, 0, 0}, {-1, 0, 0}}, .texture = &checkerboard_texture, .uvs = {{0, 0}, {1, 0}, {1, 1}}},
+        {1, 6, 2, YELLOW, .normals = {{-1, 0, 0}, {-1, 0, 0}, {-1, 0, 0}}, .texture = &checkerboard_texture, .uvs = {{0, 0}, {1, 1}, {0, 1}}},
+        {1, 0, 5, PURPLE, .normals = {{0, 1, 0}, {0, 1, 0}, {0, 1, 0}}, .texture = &checkerboard_texture, .uvs = {{0, 0}, {1, 0}, {1, 1}}},
+        {5, 0, 4, PURPLE, .normals = {{0, 1, 0}, {0, 1, 0}, {0, 1, 0}}, .texture = &checkerboard_texture, .uvs = {{0, 1}, {1, 1}, {0, 0}}},
+        {2, 6, 7, CYAN, .normals = {{0, -1, 0}, {0, -1, 0}, {0, -1, 0}}, .texture = &checkerboard_texture, .uvs = {{0, 0}, {1, 0}, {1, 1}}},
+        {2, 7, 3, CYAN, .normals = {{0, -1, 0}, {0, -1, 0}, {0, -1, 0}}, .texture = &checkerboard_texture, .uvs = {{0, 0}, {1, 1}, {0, 1}}}};
     cube.triangles_count = 12;
     cube.bounds_radius = sqrt(3);
     cube.triangles = malloc(sizeof(triangle) * cube.triangles_count);
@@ -139,10 +147,9 @@ void free_models()
 
 void initialize_instances()
 {
-    instance t_instances[3] = {
-        {.model = &cube, .position = {-1.5, 0, 7}, .orientation = identity4x4, .scale = 0.75},
-        {.model = &cube, .position = {1.25, 2.5, 7.5}, .orientation = vec4_make_rotation_matrix(195), .scale = 1},
-        {.model = &cube, .position = {1.75, 0, 5}, .orientation = vec4_make_rotation_matrix(-30), .scale = 1}};
+    instance t_instances[2] = {
+        {.model = &cube, .position = {-1, 0, 3}, .orientation = vec4_make_rotation_matrix(-15), .scale = 1},
+        {.model = &cube, .position = {5.5, 5, 20}, .orientation = vec4_make_rotation_matrix(45), .scale = 1}};
     instances = malloc(sizeof(instance) * instances_count);
     memcpy(instances, &t_instances, sizeof(instance) * instances_count);
     for (i16 i = 0; i < instances_count; i++)
