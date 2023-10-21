@@ -11,6 +11,10 @@ This the C implements practices for the book [Computer graphics from scratch](ht
   <img width="400" height="400" src="assets/screenshot01.png">
 </p>
 
+<p align="center">
+  <img width="400" height="400" src="assets/screenshot02.gif">
+</p>
+
 ## How to build.
 ### Install dependances.
 - [Clang](https://github.com/llvm/llvm-project)
@@ -30,10 +34,21 @@ This the C implements practices for the book [Computer graphics from scratch](ht
 make -f "Makefile.raytracer" all
 ```
 
-#### Raster.
+#### Raster Triangle.
 
 ```
-make -f "Makefile.raster" all
+make -f "Makefile.raster_triangle" all
 ```
 
+#### Raster Perspective.
+
+```
+make -f "Makefile.raster_perspective" all
+```
+
+#### Raster Textures.
+
+```
+make -f "Makefile.raster_textures" all
+```
 
